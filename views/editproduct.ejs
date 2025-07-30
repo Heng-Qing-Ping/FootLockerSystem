@@ -8,27 +8,36 @@
 </head>
 <body class="bg-light">
     <%- include('navbar') %>
+
     <div class="container mt-5">
         <h2 class="mb-4">Edit Product</h2>
-        <form action="/products/edit/<%= product.id %>" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="oldImage" value="<%= product.image %>">
+
+        <form action="/products/edit/<%= product.id %>" method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
+            <input type="hidden" name="oldImage" value="<%= product.image_url %>">
 
             <div class="mb-3">
                 <label class="form-label">Product Name</label>
                 <input type="text" name="name" class="form-control" value="<%= product.name %>" required>
             </div>
+
             <div class="mb-3">
-                <label class="form-label">Price</label>
+                <label class="form-label">Price ($)</label>
                 <input type="number" step="0.01" name="price" class="form-control" value="<%= product.price %>" required>
             </div>
+
             <div class="mb-3">
+                <label class="form-label">Current Image</label><br>
+                <% if (product.image_url) { %>
+                    <img src="<%= product.image_url %>" class="img-thumbnail mb-2" style="max-width: 150px;">
+                <% } else { %>
+                    <p>No image available</p>
+                <% } %>
                 <label class="form-label">Change Image (Optional)</label>
                 <input type="file" name="image" class="form-control">
-                <% if (product.image) { %>
-                    <img src="<%= product.image %>" alt="Current Image" class="mt-2" width="100">
-                <% } %>
             </div>
+
             <button type="submit" class="btn btn-primary">Update Product</button>
+            <a href="/products" class="btn btn-secondary ms-2">Cancel</a>
         </form>
     </div>
 </body>

@@ -126,7 +126,12 @@ app.get('/products', isLoggedIn, (req, res) => {
     res.render('products', { products: results });
   });
 });
-
+app.get('/products/:id', isLoggedIn, (req, res) => {
+    connection.query('SELECT * FROM products WHERE id = ?', [req.params.id], (err, results) => {
+        if (err || results.length === 0) return res.send('Product not found');
+        res.render('productdetails', { product: results[0] });
+    });
+});
 app.get('/products/search', isLoggedIn, (req, res) => {
   const keyword = `%${req.query.keyword || ''}%`;
   connection.query('SELECT * FROM products WHERE name LIKE ?', [keyword], (err, results) => {
