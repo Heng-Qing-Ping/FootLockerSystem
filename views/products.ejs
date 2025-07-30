@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<<<<<<< HEAD
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FootLocker Products</title>
@@ -33,22 +32,10 @@
       </div>
       <div class="card-body">
 
-=======
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FootLocker Products</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <%- include('navbar') %>
-
-    <div class="container">
->>>>>>> 7d22862824f0783c3e89af647f85bff3c0845106
         <% if (messages && messages.length > 0) { %>
           <div class="alert alert-success mt-2"><%= messages[0] %></div>
         <% } %>
 
-<<<<<<< HEAD
         <!-- Search -->
         <form class="mb-4 mt-2" action="/products/search" method="GET">
           <div class="input-group">
@@ -95,113 +82,9 @@
           </table>
         </div>
       </div>
-=======
-        <!-- Search Bar -->
-        <form class="mb-4" action="/products/search" method="GET">
-            <div class="input-group">
-                <input type="text" name="keyword" class="form-control" placeholder="Search products...">
-                <button class="btn btn-outline-primary" type="submit">Search</button>
-            </div>
-        </form>
-
-        <div class="row">
-            <% if (products.length === 0) { %>
-                <div class="col-12 text-center mt-4">
-                    <h4 class="text-muted">No products found.</h4>
-                </div>
-            <% } else { %>
-                <% products.forEach(product => { %>
-                    <div class="col-md-4 mb-4">
-                        <div class="card shadow-sm h-100">
-                            <% if (product.image) { %>
-                                <img src="<%= product.image %>" class="card-img-top" alt="<%= product.name %>">
-                            <% } else { %>
-                                <img src="https://via.placeholder.com/400x300?text=No+Image" class="card-img-top">
-                            <% } %>
-                            <div class="card-body text-center">
-                                <h5 class="card-title"><%= product.name %></h5>
-                                <p class="text-success fw-bold">$<%= product.price %></p>
-                            </div>
-                            <div class="card-footer text-center">
-                                <% if (user && user.role === 'admin') { %>
-                                    <a href="/products/edit/<%= product.id %>" class="btn btn-warning btn-sm me-2">Edit</a>
-                                    <a href="/products/delete/<%= product.id %>" class="btn btn-danger btn-sm me-2" onclick="return confirm('Are you sure?')">Delete</a>
-                                <% } %>
-                                <% if (user) { %>
-                                    <form action="/cart/add/<%= product.id %>" method="POST" style="display:inline;">
-                                        <button class="btn btn-primary btn-sm">Add to Cart</button>
-                                    </form>
-                                <% } %>
-                            </div>
-                        </div>
-                    </div>
-                <% }) %>
-            <% } %>
-        </div>
-    </div>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FootLocker Products</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <%- include('navbar') %>
-
-    <div class="container">
-        <% if (messages && messages.length > 0) { %>
-            <div class="alert alert-success"><%= messages[0] %></div>
-        <% } %>
-
-        <!-- Search Bar -->
-        <form class="mb-4" action="/products/search" method="GET">
-            <div class="input-group">
-                <input type="text" name="keyword" class="form-control" placeholder="Search products...">
-                <button class="btn btn-outline-primary" type="submit">Search</button>
-            </div>
-        </form>
-
-        <div class="row">
-            <% if (products.length === 0) { %>
-                <div class="col-12 text-center mt-4">
-                    <h4 class="text-muted">No products found.</h4>
-                </div>
-            <% } else { %>
-                <% products.forEach(product => { %>
-                    <div class="col-md-4 mb-4">
-                        <div class="card shadow-sm h-100">
-                            <% if (product.image) { %>
-                                <img src="<%= product.image %>" class="card-img-top" alt="<%= product.name %>">
-                            <% } else { %>
-                                <img src="https://via.placeholder.com/400x300?text=No+Image" class="card-img-top">
-                            <% } %>
-                            <div class="card-body text-center">
-                                <h5 class="card-title"><%= product.name %></h5>
-                                <p class="text-success fw-bold">$<%= product.price %></p>
-                            </div>
-                            <div class="card-footer text-center">
-                                <% if (user && user.role === 'admin') { %>
-                                    <a href="/products/edit/<%= product.id %>" class="btn btn-warning btn-sm me-2">Edit</a>
-                                    <a href="/products/delete/<%= product.id %>" class="btn btn-danger btn-sm me-2" onclick="return confirm('Are you sure?')">Delete</a>
-                                <% } %>
-                                <% if (user) { %>
-                                    <form action="/cart/add/<%= product.id %>" method="POST" style="display:inline;">
-                                        <button class="btn btn-primary btn-sm">Add to Cart</button>
-                                    </form>
-                                <% } %>
-                            </div>
-                        </div>
-                    </div>
-                <% }) %>
-            <% } %>
-        </div>
->>>>>>> 7d22862824f0783c3e89af647f85bff3c0845106
     </div>
   </div>
 </body>
 </html>
+
 
