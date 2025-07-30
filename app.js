@@ -42,7 +42,7 @@ connection.connect(err => {
   else console.log('✅ MySQL Connected!');
 });
 
-// ===== Multer =====
+// ===== Multer for Image Upload =====
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'public/uploads/'),
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
@@ -126,84 +126,164 @@ app.get('/products', isLoggedIn, (req, res) => {
     res.render('products', { products: results });
   });
 });
-app.get('/products/:id', isLoggedIn, (req, res) => {
-    connection.query('SELECT * FROM products WHERE id = ?', [req.params.id], (err, results) => {
-        if (err || results.length === 0) return res.send('Product not found');
-        res.render('productdetails', { product: results[0] });
-    });
-});
-app.get('/products/search', isLoggedIn, (req, res) => {
-  const keyword = `%${req.query.keyword || ''}%`;
-  connection.query('SELECT * FROM products WHERE name LIKE ?', [keyword], (err, results) => {
-    if (err) throw err;
-    res.render('products', { products: results });
-  });
-});
 
+// ===== ADD PRODUCT =====
 app.get('/products/add', isLoggedIn, isAdmin, (req, res) => {
   res.render('addproduct', { error: null });
 });
 
 app.post('/products/add', isLoggedIn, isAdmin, upload.single('image'), (req, res) => {
-  const { name, price } = req.body;
+  const { name, price, sizes, stocks } = req.body;
   const image_url = req.file ? `/uploads/${req.file.filename}` : null;
-  connection.query('INSERT INTO products (name, price, image_url) VALUES (?, ?, ?)',
-    [name, price, image_url], err => {
+
+  connection.query(
+    'INSERT INTO products (name, price, image_url) VALUES (?, ?, ?)',
+    [name, price, image_url],
+    (err, result) => {
       if (err) throw err;
-      req.flash('success', 'Product added!');
+      const productId = result.insertId;
+
+      // Insert sizes if provided
+      if (sizes && stocks) {
+        const sizeArray = Array.isArray(sizes) ? sizes : [sizes];
+        const stockArray = Array.isArray(stocks) ? stocks : [stocks];
+
+        const sizeData = sizeArray.map((size, i) => [productId, size, stockArray[i]]);
+        connection.query('INSERT INTO product_sizes (product_id, size, stock) VALUES ?', [sizeData]);
+      }
+
+      req.flash('success', '✅ Product added with sizes!');
       res.redirect('/products');
-    });
+    }
+  );
 });
 
+// ===== EDIT PRODUCT =====
 app.get('/products/edit/:id', isLoggedIn, isAdmin, (req, res) => {
-  connection.query('SELECT * FROM products WHERE id = ?', [req.params.id], (err, results) => {
-    if (err || results.length === 0) return res.send('Product not found');
-    res.render('editproduct', { product: results[0] });
+  const productId = req.params.id;
+
+  connection.query('SELECT * FROM products WHERE id = ?', [productId], (err, productResults) => {
+    if (err || productResults.length === 0) return res.send('Product not found');
+
+    const product = productResults[0];
+
+    connection.query('SELECT * FROM product_sizes WHERE product_id = ?', [productId], (err, sizeResults) => {
+      if (err) throw err;
+      product.sizes = sizeResults;
+      res.render('editproduct', { product });
+    });
   });
 });
 
 app.post('/products/edit/:id', isLoggedIn, isAdmin, upload.single('image'), (req, res) => {
-  const { name, price, oldImage } = req.body;
+  const { name, price, oldImage, sizes, stocks } = req.body;
   const image_url = req.file ? `/uploads/${req.file.filename}` : oldImage;
+
   connection.query('UPDATE products SET name=?, price=?, image_url=? WHERE id=?',
-    [name, price, image_url, req.params.id], err => {
+    [name, price, image_url, req.params.id], (err) => {
       if (err) throw err;
-      req.flash('success', 'Product updated!');
-      res.redirect('/products');
+
+      // Delete old sizes first
+      connection.query('DELETE FROM product_sizes WHERE product_id=?', [req.params.id], () => {
+        if (sizes && stocks) {
+          const sizeArray = Array.isArray(sizes) ? sizes : [sizes];
+          const stockArray = Array.isArray(stocks) ? stocks : [stocks];
+
+          const sizeData = sizeArray.map((size, i) => [req.params.id, size, stockArray[i]]);
+          connection.query('INSERT INTO product_sizes (product_id, size, stock) VALUES ?', [sizeData]);
+        }
+
+        req.flash('success', '✅ Product updated with sizes!');
+        res.redirect('/products');
+      });
     });
 });
 
+// ===== DELETE PRODUCT =====
 app.post('/products/delete/:id', isLoggedIn, isAdmin, (req, res) => {
   connection.query('DELETE FROM products WHERE id=?', [req.params.id], err => {
     if (err) throw err;
-    req.flash('success', 'Product deleted!');
+    req.flash('success', '🗑️ Product deleted successfully!');
     res.redirect('/products');
+  });
+});
+
+// ===== PRODUCT DETAILS =====
+app.get('/products/:id', isLoggedIn, (req, res) => {
+  const productId = req.params.id;
+
+  connection.query('SELECT * FROM products WHERE id = ?', [productId], (err, productResults) => {
+    if (err || productResults.length === 0) return res.send('Product not found');
+
+    const product = productResults[0];
+
+    connection.query('SELECT * FROM product_sizes WHERE product_id = ?', [productId], (err, sizeResults) => {
+      if (err) throw err;
+      res.render('productdetails', { product, sizes: sizeResults });
+    });
   });
 });
 
 // ===== CART =====
 app.post('/cart/add/:id', isLoggedIn, (req, res) => {
-  if (!req.session.cart) req.session.cart = [];
-  req.session.cart.push(req.params.id);
-  req.flash('success', 'Item added to cart!');
-  res.redirect('/products');
+    const productId = req.params.id;
+    const sizeId = req.body.size_id;
+
+    if (!sizeId) {
+        req.flash('error', 'Please select a size.');
+        return res.redirect('/products/' + productId);
+    }
+
+    // Check stock for the selected size
+    connection.query('SELECT * FROM product_sizes WHERE id = ?', [sizeId], (err, results) => {
+        if (err) throw err;
+        if (results.length === 0 || results[0].stock <= 0) {
+            req.flash('error', 'This size is out of stock.');
+            return res.redirect('/products/' + productId);
+        }
+
+        // Deduct 1 from stock
+        connection.query('UPDATE product_sizes SET stock = stock - 1 WHERE id = ?', [sizeId]);
+
+        // Add to session cart
+        if (!req.session.cart) req.session.cart = [];
+        req.session.cart.push({ productId, sizeId });
+
+        req.flash('success', 'Item added to cart!');
+        res.redirect('/products');
+    });
 });
 
 app.get('/cart', isLoggedIn, (req, res) => {
-  const cartIds = req.session.cart || [];
-  if (cartIds.length === 0) return res.render('cart', { products: [] });
+    const cart = req.session.cart || [];
 
-  connection.query('SELECT * FROM products WHERE id IN (?)', [cartIds], (err, results) => {
-    if (err) throw err;
-    res.render('cart', { products: results });
-  });
+    if (cart.length === 0) return res.render('cart', { cartItems: [] });
+
+    // Join cart with product and size details
+    const sizeIds = cart.map(item => item.sizeId);
+    connection.query(
+        `SELECT ps.id AS sizeId, ps.size, p.id AS productId, p.name, p.price, p.image_url
+         FROM product_sizes ps
+         JOIN products p ON ps.product_id = p.id
+         WHERE ps.id IN (?)`, [sizeIds], 
+         (err, results) => {
+            if (err) throw err;
+            res.render('cart', { cartItems: results });
+         }
+    );
 });
 
-app.get('/cart/remove/:id', isLoggedIn, (req, res) => {
-  req.session.cart = (req.session.cart || []).filter(pid => pid !== req.params.id);
-  req.flash('success', 'Item removed from cart!');
-  res.redirect('/cart');
+app.get('/cart/remove/:sizeId', isLoggedIn, (req, res) => {
+    const sizeId = req.params.sizeId;
+    req.session.cart = (req.session.cart || []).filter(item => item.sizeId != sizeId);
+
+    // Optionally return stock
+    connection.query('UPDATE product_sizes SET stock = stock + 1 WHERE id = ?', [sizeId]);
+
+    req.flash('success', 'Item removed from cart!');
+    res.redirect('/cart');
 });
 
-// ===== START =====
+
+// ===== START SERVER =====
 app.listen(port, () => console.log(`🚀 Server running at http://localhost:${port}`));

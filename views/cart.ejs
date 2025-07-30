@@ -8,31 +8,38 @@
 </head>
 <body class="bg-light">
     <%- include('navbar') %>
+
     <div class="container mt-5">
         <h2 class="mb-4">Your Cart</h2>
-        <% if (products.length === 0) { %>
+
+        <% if (cartItems.length === 0) { %>
             <div class="alert alert-info">Your cart is empty.</div>
         <% } else { %>
-            <div class="row">
-                <% products.forEach(product => { %>
-                    <div class="col-md-4 mb-4">
-                        <div class="card shadow-sm h-100">
-                            <% if (product.image) { %>
-                                <img src="<%= product.image %>" class="card-img-top">
-                            <% } else { %>
-                                <img src="https://via.placeholder.com/400x300?text=No+Image" class="card-img-top">
-                            <% } %>
-                            <div class="card-body text-center">
-                                <h5 class="card-title"><%= product.name %></h5>
-                                <p class="text-success fw-bold">$<%= product.price %></p>
-                            </div>
-                            <div class="card-footer text-center">
-                                <a href="/cart/remove/<%= product.id %>" class="btn btn-danger btn-sm">Remove</a>
-                            </div>
-                        </div>
-                    </div>
-                <% }) %>
-            </div>
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Size</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% cartItems.forEach(item => { %>
+                        <tr>
+                            <td>
+                                <img src="<%= item.image_url %>" class="img-thumbnail me-2" style="max-width: 80px;">
+                                <%= item.name %>
+                            </td>
+                            <td><%= item.size %></td>
+                            <td>$<%= parseFloat(item.price).toFixed(2) %></td>
+                            <td>
+                                <a href="/cart/remove/<%= item.sizeId %>" class="btn btn-danger btn-sm">Remove</a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
         <% } %>
     </div>
 </body>

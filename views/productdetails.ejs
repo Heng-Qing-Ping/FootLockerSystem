@@ -25,16 +25,50 @@
                 <h2 class="fw-bold"><%= product.name %></h2>
                 <p class="text-success fs-4 fw-bold">$<%= parseFloat(product.price).toFixed(2) %></p>
 
+                <!-- Available Sizes -->
+                <h5 class="mt-4">Available Sizes:</h5>
+                <ul class="list-group mb-3">
+                    <% if (sizes.length === 0) { %>
+                        <li class="list-group-item text-muted">No sizes available</li>
+                    <% } else { %>
+                        <% sizes.forEach(size => { %>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <%= size.size %>
+                                <% if (size.stock > 0) { %>
+                                    <span class="badge bg-success"><%= size.stock %> in stock</span>
+                                <% } else { %>
+                                    <span class="badge bg-danger">Out of stock</span>
+                                <% } %>
+                            </li>
+                        <% }) %>
+                    <% } %>
+                </ul>
+
+                <!-- Size Selection and Add to Cart -->
+                <% if (user) { %>
+                    <form action="/cart/add/<%= product.id %>" method="POST" class="mt-3">
+                        <div class="mb-3">
+                            <label for="sizeSelect" class="form-label">Select Size:</label>
+                            <select name="size_id" class="form-select" required>
+                                <% sizes.forEach(size => { %>
+                                    <option value="<%= size.id %>" <%= size.stock === 0 ? 'disabled' : '' %>>
+                                        <%= size.size %> 
+                                        (<%= size.stock > 0 ? size.stock + ' in stock' : 'Out of stock' %>)
+                                    </option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary mt-2" <%= sizes.length === 0 ? 'disabled' : '' %>>
+                            Add to Cart
+                        </button>
+                    </form>
+                <% } %>
+
                 <!-- Admin Buttons -->
                 <% if (user && user.role === 'admin') { %>
-                    <a href="/products/edit/<%= product.id %>" class="btn btn-warning me-2">Edit</a>
+                    <a href="/products/edit/<%= product.id %>" class="btn btn-warning me-2 mt-3">Edit</a>
                     <form action="/products/delete/<%= product.id %>" method="POST" style="display:inline-block">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                <% } else if (user) { %>
-                    <!-- Add to Cart for Logged-in Users -->
-                    <form action="/cart/add/<%= product.id %>" method="POST">
-                        <button class="btn btn-primary mt-3">Add to Cart</button>
+                        <button type="submit" class="btn btn-danger mt-3">Delete</button>
                     </form>
                 <% } %>
 
@@ -45,6 +79,5 @@
             </div>
         </div>
     </div>
-
 </body>
 </html>

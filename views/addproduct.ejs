@@ -12,10 +12,6 @@
     <div class="container mt-5">
         <h2 class="mb-4">Add New Product</h2>
 
-        <% if (error) { %>
-            <div class="alert alert-danger"><%= error %></div>
-        <% } %>
-
         <form action="/products/add" method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
             <div class="mb-3">
                 <label class="form-label">Product Name</label>
@@ -32,9 +28,32 @@
                 <input type="file" name="image" class="form-control">
             </div>
 
+            <!-- Sizes and Stock -->
+            <h5>Sizes & Stock</h5>
+            <div id="sizes-container" class="mb-3">
+                <div class="input-group mb-2">
+                    <input type="text" name="sizes" placeholder="Size (e.g., US 8)" class="form-control">
+                    <input type="number" name="stocks" placeholder="Stock" class="form-control">
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary mb-3" onclick="addSizeField()">+ Add Another Size</button>
+
             <button type="submit" class="btn btn-success">Add Product</button>
             <a href="/products" class="btn btn-secondary ms-2">Cancel</a>
         </form>
     </div>
+
+<script>
+function addSizeField() {
+    const container = document.getElementById('sizes-container');
+    const div = document.createElement('div');
+    div.classList.add('input-group', 'mb-2');
+    div.innerHTML = `
+        <input type="text" name="sizes" placeholder="Size (e.g., US 9)" class="form-control">
+        <input type="number" name="stocks" placeholder="Stock" class="form-control">
+    `;
+    container.appendChild(div);
+}
+</script>
 </body>
 </html>
