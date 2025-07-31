@@ -39,7 +39,7 @@ const connection = mysql.createConnection({
 });
 connection.connect(err => {
   if (err) console.error(err);
-  else console.log('✅ MySQL Connected!');
+  else console.log(' MySQL Connected!');
 });
 
 // ===== Multer for Image Upload =====
@@ -127,6 +127,22 @@ app.get('/products', isLoggedIn, (req, res) => {
   });
 });
 
+// ===== SEARCH PRODUCTS =====
+app.get('/products/search', isLoggedIn, (req, res) => {
+    const keyword = `%${req.query.keyword || ''}%`;
+
+    connection.query('SELECT * FROM products WHERE name LIKE ?', [keyword], (err, results) => {
+        if (err) throw err;
+
+        if (results.length === 0) {
+            req.flash('error', 'No products found for "' + req.query.keyword + '"');
+        }
+
+        res.render('products', { products: results });
+    });
+});
+
+
 // ===== ADD PRODUCT =====
 app.get('/products/add', isLoggedIn, isAdmin, (req, res) => {
   res.render('addproduct', { error: null });
@@ -152,7 +168,7 @@ app.post('/products/add', isLoggedIn, isAdmin, upload.single('image'), (req, res
         connection.query('INSERT INTO product_sizes (product_id, size, stock) VALUES ?', [sizeData]);
       }
 
-      req.flash('success', '✅ Product added with sizes!');
+      req.flash('success', ' Product added with sizes!');
       res.redirect('/products');
     }
   );
@@ -193,7 +209,7 @@ app.post('/products/edit/:id', isLoggedIn, isAdmin, upload.single('image'), (req
           connection.query('INSERT INTO product_sizes (product_id, size, stock) VALUES ?', [sizeData]);
         }
 
-        req.flash('success', '✅ Product updated with sizes!');
+        req.flash('success', ' Product updated with sizes!');
         res.redirect('/products');
       });
     });
@@ -203,7 +219,7 @@ app.post('/products/edit/:id', isLoggedIn, isAdmin, upload.single('image'), (req
 app.post('/products/delete/:id', isLoggedIn, isAdmin, (req, res) => {
   connection.query('DELETE FROM products WHERE id=?', [req.params.id], err => {
     if (err) throw err;
-    req.flash('success', '🗑️ Product deleted successfully!');
+    req.flash('success', ' Product deleted successfully!');
     res.redirect('/products');
   });
 });
@@ -286,4 +302,4 @@ app.get('/cart/remove/:sizeId', isLoggedIn, (req, res) => {
 
 
 // ===== START SERVER =====
-app.listen(port, () => console.log(`🚀 Server running at http://localhost:${port}`));
+app.listen(port, () => console.log(` Server running at http://localhost:${port}`));
